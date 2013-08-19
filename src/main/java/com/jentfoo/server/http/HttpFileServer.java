@@ -30,15 +30,15 @@ public class HttpFileServer {
   private final InetSocketAddress bindAddress;
   private final RequestHandler requestHandler;
   
-  public HttpFileServer(int port, File fileRoot) {
+  public HttpFileServer(int port, File fileRoot) throws IOException {
     this(new InetSocketAddress(port), fileRoot);
   }
   
-  public HttpFileServer(int port, String bindHost, File fileRoot) {
+  public HttpFileServer(int port, String bindHost, File fileRoot) throws IOException {
     this(new InetSocketAddress(bindHost, port), fileRoot);
   }
   
-  public HttpFileServer(InetSocketAddress bindAddress, File fileRoot) {
+  public HttpFileServer(InetSocketAddress bindAddress, File fileRoot) throws IOException {
     if (bindAddress == null) {
       throw new IllegalArgumentException("Must provide InetSocketAddress to bind on");
     }
