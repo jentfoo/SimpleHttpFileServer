@@ -2,6 +2,7 @@ package com.jentfoo.server.http;
 
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,6 +14,7 @@ public class RequestHandler {
   private static final int THREAD_KEEP_ALIVE_TIME_IN_MILLIS = 1000 * 15;
   private static final String GET_STR = "GET";
   private static final String POST_STR = "POST";
+  private static final int BUFFER_SIZE = 2048;
   
   private final File fileRoot;
   private final PriorityScheduledExecutor scheduler;
@@ -75,11 +77,27 @@ public class RequestHandler {
           File requestedFile = new File(fileRoot, requestedFileStr).getCanonicalFile();
           if (! requestedFile.getAbsolutePath().contains(fileRoot.getAbsolutePath()) || 
               ! requestedFile.canRead()) {
-            // return forbidden
+            String header = HttpResponseHeaderBuilder.buildHeader(HttpResponseHeaderBuilder.CODE_FORBIDDEN);
+            requestOut.write(header.getBytes());
           } else if (! requestedFile.exists()) {
-            // return 404
+            String header = HttpResponseHeaderBuilder.buildHeader(HttpResponseHeaderBuilder.CODE_NOT_FOUND);
+            requestOut.write(header.getBytes());
           } else {
-            // return 200 result
+            String header = HttpResponseHeaderBuilder.buildHeader(HttpResponseHeaderBuilder.CODE_OK, 
+                                                                  requestedFile);
+            requestOut.write(header.getBytes());
+            
+            // now write file
+            InputStream fileIn = new FileInputStream(requestedFile);
+            try {
+              byte[] buffer = new byte[BUFFER_SIZE];
+              int readCount;
+              while ((readCount = fileIn.read(buffer)) != -1) {
+                requestOut.write(buffer, 0, readCount);
+              }
+            } finally {
+              fileIn.close();
+            }
           }
         } else if (request.startsWith(POST_STR)) {
           throw new UnsupportedOperationException("Post requests not currently implemented");
