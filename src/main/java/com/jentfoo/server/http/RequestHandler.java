@@ -134,7 +134,7 @@ public class RequestHandler {
             
             done = headerComplete(result);
             if (! done && val == -1) {
-              throw new EOFException("Incomplete request header");
+              throw new EOFException("Incomplete request header: \n" + result.toString());
             }
           }
         } while (! done);
